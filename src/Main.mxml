@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark" xmlns:aaronhardy="com.aaronhardy.*"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               backgroundColor="0x004756"
+               creationComplete="creationCompleteHandler(event)">
+    <fx:Script><![CDATA[
+        import mx.collections.ArrayCollection;
+        import mx.events.FlexEvent;
+        import mx.managers.CursorManager;
+
+        import spark.events.ElementExistenceEvent;
+
+        [Embed(source="pan_down.png")]
+        public var down_Cursor:Class;
+
+        [Embed(source="pan_up.png")]
+        public var up_Cursor:Class;
+
+        private var colorArr:Array = ['0xBF360C',
+            '0xFF5722',
+            '0xFF9800',
+            '0xFFEB3B',
+            '0xCDDC39',
+            '0x8BC34A',
+            '0x4CAF50',
+            '0x009688',
+            '0x00BCD4',
+            '0x03A9F4',
+            '0x2196F3',
+            '0x3F51B5',
+            '0x673AB7',
+            '0x9C27B0',
+            '0xE91E63'];
+        private var colorIndex:int = 0;
+
+        [Bindable]
+        public var dataProvider:ArrayCollection;
+
+        public function makeDataProvider():ArrayCollection
+        {
+            var user1:Object = new Object();
+            user1.name = "SUPER HEROES";
+            user1.color = "0xBF360C";
+            user1.open = true;
+
+
+            var user2:Object = new Object();
+            user2.name = "MARVEL";
+            user2.color = "0xFF5722";
+            user2.open = true;
+
+            var user3:Object = new Object();
+            user3.name = "Iron Man";
+            user3.color = "0xFF9800";
+            user3.open = true;
+
+            var user4:Object = new Object();
+            user4.name = "Hulk";
+            user4.color = "0xFFEB3B";
+
+            var user5:Object = new Object();
+            user5.name = "Thor";
+            user5.color = "0xCDDC39";
+
+            var user6:Object = new Object();
+            user6.name = "Sprider-Man";
+            user6.color = "0x8BC34A";
+
+            var user7:Object = new Object();
+            user7.name = "Captain America";
+            user7.color = "0x4CAF50";
+
+            var user8:Object = new Object();
+            user8.name = "DC COMICS";
+            user8.color = "0x009688";
+            user8.open = true;
+
+            var user9:Object = new Object();
+            user9.name = "Batman";
+            user9.color = "0x00BCD4";
+            user9.open = true;
+
+            var user0:Object = new Object();
+            user0.name = "Superman";
+            user0.color = "0x03A9F4";
+
+            var user01:Object = new Object();
+            user01.name = "The Flash";
+            user01.color = "0x2196F3";
+
+            var user02:Object = new Object();
+            user02.name = "Green Arrow";
+            user02.color = "0x3F51B5";
+
+            var user03:Object = new Object();
+            user03.name = "Wonder Woman";
+            user03.color = "0x673AB7";
+
+            var user04:Object = new Object();
+            user04.name = "Iron Man 1";
+            user04.color = "0x9C27B0";
+
+            var user05:Object = new Object();
+            user05.name = "Iron Man 2";
+            user05.color = "0xE91E63";
+
+            var user06:Object = new Object();
+            user06.name = "Iron Man 3";
+            user06.color = "0x673AB7";
+
+            var user07:Object = new Object();
+            user07.name = "Captain America:The First Avenger";
+            user07.color = "0x3F51B5";
+
+            var user08:Object = new Object();
+            user08.name = "Captain America:The Winter Soldier";
+            user08.color = "0x2196F3";
+
+            var user09:Object = new Object();
+            user09.name = "Batman Begins";
+            user09.color = "0x03A9F4";
+
+            var user11:Object = new Object();
+            user11.name = "The Dark Knight";
+            user11.color = "0x00BCD4";
+
+            var user12:Object = new Object();
+            user12.name = "The Dark Knight Rises";
+            user12.color = "0x009688";
+
+            user1.childArr = new Array(user2, user8);
+            user2.childArr = new Array(user3, user4, user6, user7);
+            user3.childArr = new Array(user04, user05, user06);
+            user8.childArr = new Array(user0, user01, user9, user02);
+            user7.childArr = new Array(user07, user08);
+            user9.childArr = new Array(user09, user11, user12);
+            return new ArrayCollection(new Array(user1));
+        }
+
+        private function creationCompleteHandler(event:FlexEvent):void
+        {
+            dataProvider = makeDataProvider();
+            if (dataProvider)
+                makeRootNode();
+        }
+
+        public function makeRootNode():void
+        {
+            var node:Node = new Node();
+            node.text = (dataProvider.getItemAt(0) as Object).name;
+            node.backGroundColor = (dataProvider.getItemAt(0) as Object).color;
+            node.addEventListener("userClicked", label_clickHandler);
+            node.addEventListener("updateMeasurement", node_updateMeasurementHandler);
+            node.childArr = (dataProvider.getItemAt(0) as Object).childArr;
+            mainGroup.addElement(node);
+            if ((dataProvider.getItemAt(0) as Object).open)
+            {
+                setTimeout(node.simulateClick,500);
+                (dataProvider.getItemAt(0) as Object).open = false;
+            }
+
+        }
+
+        private function label_clickHandler(event:Event):void
+        {
+            var targetNode:Node = event.currentTarget as Node;
+            if (targetNode.isChildVisible)
+                targetNode.removeChildNode();
+            else
+            {
+                for each(var obj:Object in targetNode.childArr)
+                {
+                    var node:Node = new Node();
+                    node.text = obj.name;
+                    node.backGroundColor = obj.color;
+                    node.childArr = obj.childArr;
+                    node.addEventListener("userClicked", label_clickHandler);
+                    node.addEventListener("updateMeasurement", node_updateMeasurementHandler);
+                    targetNode.addChildNode(node);
+                    if (obj.open)
+                    {
+                        setTimeout(node.simulateClick,500);
+                        obj.open = false;
+                    }
+                }
+            }
+            targetNode.isChildVisible = !targetNode.isChildVisible;
+        }
+
+        private function node_updateMeasurementHandler(event:Event):void
+        {
+            var targetNode:Node = event.currentTarget as Node;
+            targetNode.updateMeasurement();
+        }
+
+        private function mainGroup_updateCompleteHandler(event:FlexEvent):void
+        {
+
+        }
+
+        private function canvas_keyDownHandler(event:KeyboardEvent):void
+        {
+            if (event.keyCode == Keyboard.CONTROL)
+            {
+                CursorManager.setCursor(up_Cursor);
+                panner.downCursor = down_Cursor;
+                panner.panEnabled = true;
+            }
+        }
+
+        private function canvas_keyUpHandler(event:KeyboardEvent):void
+        {
+            if (event.keyCode == Keyboard.CONTROL)
+            {
+                panner.panEnabled = false;
+                CursorManager.removeAllCursors();
+            }
+        }
+
+        ]]></fx:Script>
+    <fx:Declarations>
+        <s:Scale id="show"
+                 scaleXFrom="0.1"
+                 scaleXTo="1"
+                 scaleYTo="1"
+                 scaleYFrom="0.1"
+                 duration="400"/>
+        <aaronhardy:ContainerPanner id="panner"
+                                    container="{canvas}"
+                                    panEnabled="false"
+                />
+    </fx:Declarations>
+    <!--<s:Scroller verticalCenter="0"
+                horizontalCenter="0"
+                liveScrolling="true"
+                id="scroller"
+                height="550"
+                width="550">
+    </s:Scroller>-->
+
+    <s:VGroup width="100%"
+              height="100%"
+              addedEffect="show"
+              updateComplete="mainGroup_updateCompleteHandler(event)"
+              horizontalAlign="center"
+              horizontalCenter="0"
+              clipAndEnableScrolling="true"
+              paddingTop="40">
+
+        <mx:Canvas width="100%"
+                   height="100%"
+                   horizontalCenter="0"
+                   addedToStage="stage.addEventListener(KeyboardEvent.KEY_DOWN,canvas_keyDownHandler);stage.addEventListener(KeyboardEvent.KEY_UP,canvas_keyUpHandler);"
+                   id="canvas">
+            <s:VGroup id="mainGroup"
+                      width="100%"
+                      horizontalAlign="center">
+
+            </s:VGroup>
+        </mx:Canvas>
+
+    </s:VGroup>
+</s:Application>

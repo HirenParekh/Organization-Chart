@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<!--
+  Created by hiren.parekh on 4/15/2015.
+-->
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                      addedEffect="show"
+                      xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script><![CDATA[
+        import mx.core.UIComponent;
+        import mx.events.EffectEvent;
+        import mx.graphics.SolidColorStroke;
+
+        import spark.primitives.Line;
+
+        [Bindable]
+        private var _text:String;
+
+        [Bindable]
+        private var _childArr:Array;
+
+        [Before]
+        private var _backGroundColor:uint;
+
+
+        public function set backGroundColor(value:uint):void
+        {
+            _backGroundColor = value;
+        }
+
+        public function get text():String
+        {
+            return _text;
+        }
+
+        public function set text(value:String):void
+        {
+            _text = value;
+        }
+
+        public function get childArr():Array
+        {
+            return _childArr;
+        }
+
+        public function set childArr(value:Array):void
+        {
+            _childArr = value;
+        }
+
+        [Bindable]
+        private var _isChildVisible:Boolean = false;
+
+        public function get isChildVisible():Boolean
+        {
+            return _isChildVisible;
+        }
+
+        public function set isChildVisible(value:Boolean):void
+        {
+            _isChildVisible = value;
+        }
+
+        public function addChildNode(child:Node):void
+        {
+            if (hide.isPlaying)
+                hide.end();
+            childGroup.addElement(child);
+            getLinePointsAndDrawLine(child);
+        }
+
+        private function getLinePointsAndDrawLine(node:UIComponent):void
+        {
+            var point1:Point = mainContainer.localToGlobal(new Point(mainContainer.width / 2, mainContainer.height));
+            var point2:Point = new Point(point1.x, point1.y + 15);
+            var point4:Point = node.localToGlobal(new Point(node.width / 2, 0));
+            var point3:Point = new Point(point4.x, point2.y);
+            drawLine(point1, point2, point3, point4);
+        }
+
+        private function drawLine(point1:Point, point2:Point, point3:Point, point4:Point):void
+        {
+            var p1:Point = lineGroup.globalToLocal(point1);
+            var p2:Point = lineGroup.globalToLocal(point2);
+            var p3:Point = lineGroup.globalToLocal(point3);
+            var p4:Point = lineGroup.globalToLocal(point4);
+            var line1:Line = new Line();
+            var line2:Line = new Line();
+            var line3:Line = new Line();
+            line1.stroke = line2.stroke = line3.stroke = new SolidColorStroke(0xFFFFFF, 1);
+
+            line1.xFrom = p1.x;
+            trace("p1" + p1);
+            line1.yFrom = p1.y;
+            trace("p2" + p2);
+            line1.xTo = p2.x;
+            trace("p3" + p3);
+            line1.yTo = p2.y;
+            trace("p4" + p4);
+
+            line2.xFrom = p2.x;
+            line2.yFrom = p2.y;
+            line2.xTo = p3.x;
+            line2.yTo = p3.y;
+
+            line3.xFrom = p3.x;
+            line3.yFrom = p3.y;
+            line3.xTo = p4.x;
+            line3.yTo = p4.y;
+
+            lineGroup.addElement(line1);
+            lineGroup.addElement(line2);
+            lineGroup.addElement(line3);
+        }
+
+        public function removeChildNode():void
+        {
+            var childNodes:Array = new Array();
+            for (var i:int = 0; i < childGroup.numElements; i++)
+            {
+                childNodes.push((childGroup.getElementAt(i) as UIComponent));
+            }
+            if (show.isPlaying)
+                show.end();
+            hide.play(childNodes);
+        }
+
+        private function borderContainer1_clickHandler(event:MouseEvent):void
+        {
+            this.dispatchEvent(new Event("userClicked"));
+        }
+
+        public function simulateClick():void
+        {
+            this.dispatchEvent(new Event("userClicked"));
+        }
+
+        public function getChildGroupWidth():Number
+        {
+            return childGroup.width;
+        }
+
+        public function updateMeasurement():void
+        {
+            lineGroup.removeAllElements();
+            for (var i:int = 0; i < childGroup.numElements; i++)
+            {
+                var node:Node = childGroup.getElementAt(i) as Node;
+                getLinePointsAndDrawLine(node);
+            }
+            this.parentDocument.dispatchEvent(new Event("updateMeasurement"));
+        }
+
+        private function getLargestChildWidth():Number
+        {
+            var maxMemberWidth:int = int(Math.max.apply(null, getAllChildWidths()));
+            return maxMemberWidth;
+        }
+
+        private function getAllChildWidths():Array
+        {
+            var widths:Array = new Array();
+            for (var i:int = 0; i < childGroup.numElements; i++)
+            {
+                widths.push((childGroup.getElementAt(i) as UIComponent).measuredWidth);
+                trace((childGroup.getElementAt(i) as Node).text + ":" + (childGroup.getElementAt(i) as UIComponent).measuredWidth + " " + _text);
+            }
+            return widths;
+        }
+
+        private function hide_effectEndHandler(event:EffectEvent):void
+        {
+            childGroup.removeAllElements();
+            lineGroup.removeAllElements();
+        }
+
+        private function show_effectUpdateHandler(event:EffectEvent):void
+        {
+            updateMeasurement();
+        }
+        ]]></fx:Script>
+    <fx:Declarations>
+        <s:DropShadowFilter alpha="0.45"
+                            angle="50"
+                            blurX="3.5"
+                            blurY="2.5"
+                            color="0x000000"
+                            distance="1"
+                            hideObject="false"
+                            inner="false"
+                            knockout="false"
+                            id="dropShadowFilter"
+                            quality="2"
+                            strength="1"/>
+        <s:Scale id="show"
+                 scaleXFrom="0.1"
+                 scaleXTo="1"
+                 scaleYTo="1"
+                 effectUpdate="show_effectUpdateHandler(event)"
+                 scaleYFrom="0.1"
+                 duration="400"/>
+        <s:Scale id="hide"
+                 effectUpdate="show_effectUpdateHandler(event)"
+                 effectEnd="hide_effectEndHandler(event)"
+                 scaleXTo="0.1"
+                 scaleYTo="0.1"
+                 duration="400"/>
+    </fx:Declarations>
+    <s:VGroup verticalAlign="middle"
+              height="100%"
+              width="100%"
+              horizontalAlign="center">
+
+        <s:BorderContainer id="mainContainer"
+                           width="60"
+                           height="60"
+                           backgroundColor="0xFFFFFF"
+                           borderVisible="false"
+                           filters="{[dropShadowFilter]}"
+                           click="borderContainer1_clickHandler(event)"
+                           horizontalCenter="0">
+            <s:Label text="{_childArr?'Click Me':' '}"
+                     textAlign="center"
+                     fontSize="12"
+                     width="100%"
+                     verticalCenter="0"
+                     horizontalCenter="0"
+                     paddingTop="10"
+                     paddingBottom="10"
+                     paddingRight="10"
+                     paddingLeft="10"/>
+            <s:Label bottom="0"
+                     right="5"
+                     fontSize="15"
+                     visible="{_childArr?true:false}"
+                     text="{_isChildVisible?'-':'+'}"/>
+        </s:BorderContainer>
+        <s:HGroup id="childGroup"
+                  paddingTop="30"
+                  horizontalAlign="center"
+                >
+        </s:HGroup>
+
+    </s:VGroup>
+    <s:Group height="100%"
+             width="100%"
+             showEffect="show"
+             id="lineGroup">
+    </s:Group>
+</s:SkinnableContainer>
